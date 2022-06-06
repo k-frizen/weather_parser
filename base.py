@@ -40,7 +40,7 @@ class DatabaseUpdater:
 
         :param starts_from: first date of diapason used to get forecast
         :param to: last date of diapason used to get forecast
-        :rtype: List[Tuple[str, str, str, ndarray | None, Tuple[int, int, int]]]
+        :rtype: list[tuple[str, str, str, Optional[ndarray], tuple[int, int, int]]]
         """
         first_day = starts_from or datetime.date.today() - datetime.timedelta(weeks=1)
         last_day = to or datetime.date.today() + datetime.timedelta(days=10)
