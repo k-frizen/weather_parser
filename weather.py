@@ -59,7 +59,7 @@ class Manager:
         for predictor in predictors:
             predictor.join()
 
-    def __enter_the_dates_range(self) -> tuple[tuple[datetime.date, ...], bool, bool]:
+    def __parse_the_dates_range(self) -> tuple[tuple[datetime.date, ...], bool, bool]:
         """ Method provides user data entry using argparse"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-f', type=str, help='Enter first date of diapason to get forecast in yyyy-mm-dd format')
@@ -74,7 +74,7 @@ class Manager:
     def run(self):
         """Main method provides all processes of project"""
         db_updater = DatabaseUpdater()
-        (first_date, last_date), need_postcards, need_forecast = self.__enter_the_dates_range()
+        (first_date, last_date), need_postcards, need_forecast = self.__parse_the_dates_range()
         assert (last_date - first_date).days > 0
 
         self.get_weather_data(first_date, last_date)
