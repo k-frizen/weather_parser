@@ -92,4 +92,4 @@ class Manager:
 
 
 if __name__ == "__main__":
-    Manager('-f 2022-06-20 -l 2022-06-21 -c -p').run()
+    Manager('-f 2022-06-16 -l 2022-06-17 -c -p').run()
