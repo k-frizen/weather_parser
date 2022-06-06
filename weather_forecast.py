@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import os
 import re
 import threading
 import time
@@ -9,6 +8,8 @@ from typing import Tuple
 import requests
 from bs4 import BeautifulSoup
 
+from settings import ICONS_PATH, ICONS_DATA, DATE_HOUR_FORMAT, get_norm_and_join_path
+
 
 class WeatherMaker(threading.Thread):
     """Thread-class to parse https://darksky.net and collect forecast"""
@@ -16,8 +17,6 @@ class WeatherMaker(threading.Thread):
     RAINY_PATTERN = re.compile(r'drizzle|rain')
     SNOW_PATTERN = re.compile(r'snow')
     CLOUDY_PATTERN = re.compile(r'overcast|cloud|foggy')
-
-    ICONS_PATH = 'external_data/weather_img'
 
     def __init__(self, lock: threading.Lock, day: datetime.date, res_holder: list):
         super().__init__()
@@ -37,36 +36,40 @@ class WeatherMaker(threading.Thread):
         snow_match = re.findall(self.SNOW_PATTERN, weather_type)
         cloudy_match = re.findall(self.CLOUDY_PATTERN, weather_type)
 
-        weather_icon, colour = None, None
         if sunny_match:
-            weather_icon, colour = 'sun.png', '32, 165, 218'  # Goldenrod
+            key = 'sun'
         elif rainy_match:
-            weather_icon, colour = 'rain.png', '225, 105, 65'  # RoyalBlue
+            key = 'rain'
         elif snow_match:
-            weather_icon, colour = 'snow.png', '235, 206, 135'  # SkyBlue
+            key = 'snow'
         elif cloudy_match:
-            weather_icon, colour = 'cloud.png', '105, 105, 105'  # LightSlateGrey
+            key = 'cloud'
+        else:
+            key = 'no data'
 
-        icon_path = os.path.normpath(os.path.join(self.ICONS_PATH, weather_icon))
-        assert os.path.exists(icon_path)
+        weather_icon, colour = ICONS_DATA[key]['icon_file_name'], ICONS_DATA[key]['colour']
+        icon_path = get_norm_and_join_path(ICONS_PATH, weather_icon)
         return icon_path, colour
 
     def run(self):
         if self.weather_resp.status_code == 200:
             html_doc = BeautifulSoup(self.weather_resp.text, features='html.parser')
             weather_data = html_doc.find_all('script')
-            date_for_searching = int(time.mktime(time.strptime(str(self.day) + '-16', '%Y-%m-%d-%H')))
+            date_for_searching = int(time.mktime(time.strptime(str(self.day) + '-16', DATE_HOUR_FORMAT)))
             source = re.findall(f'{date_for_searching}.*?"time"', str(weather_data))
 
             temperature_source = str(re.findall(r'"temperature":.*?,', str(source[0]))[0])
             temperature = str(re.findall(r':\d*.?\d*', temperature_source)[0])[1:]
 
             weather_match = re.findall(r'"summary":"[\w*\s?]*"', str(source[0]))
-            if weather_match and (self.day - datetime.date.today()).days < 10:
+            days_difference = (self.day - datetime.date.today()).days < 10
+
+            if weather_match and days_difference < 10:
                 weather_type = str(weather_match[0]).split('":"')[1][:-1]
-                icon, colour = self._weather_type_handler(weather_type.lower())
             else:
-                weather_type, icon, colour = 'No data', '', '255, 255, 255'
+                weather_type = ICONS_DATA['no data']['weather_type']
+
+            icon, colour = self._weather_type_handler(weather_type.lower())
 
             data = {
                 'weather_type': weather_type,
