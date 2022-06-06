@@ -23,7 +23,7 @@ class ImageMaker:
         cv2.destroyAllWindows()
 
     def compare_background_and_icon(self, background: ndarray, icon: ndarray, colour: tuple) -> ndarray:
-        """Compares postcard and icon overwriting pixels from icon to postcard.
+        """Overlays icon on postcard.
 
         :param background: postcard background matrix
         :param icon: icon matrix
@@ -48,8 +48,8 @@ class ImageMaker:
         return background
 
     def draw_postcard(self, data: tuple, path_to_save: str):
-        """Draws picture with colored background, degrees, date and weather type caption. Display result postcard and
-        save it.
+        """Draws picture with colored background, degrees, date and weather type caption.
+        Displays result postcard and saves it.
 
         :param data: database field contains weather type and temp at this date, icon path and colour to draw gradient
         :param path_to_save: directory where weather postcards will be stored."""
