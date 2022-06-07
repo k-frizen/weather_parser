@@ -54,12 +54,12 @@ class DatabaseUpdater:
         ))
             for field in res]
 
-    def save_weather_to_db(self, forecast: list):
-        """Saves forecasts to database and commit changes
+    def save_weather_to_db(self, forecast: list[dict]):
+        """Executes updating (if some fields exists yet)
+        or inserting data to database.
 
         :param forecast: forecasts collected by parser"""
         for day_weather in forecast:
-            assert isinstance(day_weather, dict)
             Forecast.insert(**day_weather).on_conflict(
                 conflict_target=(Forecast.date,),
                 update=day_weather
@@ -78,16 +78,3 @@ class DatabaseUpdater:
         icon = cv2.imread(icon_path, -1) if icon_path else None
         colour = tuple(map(int, colour.split(',')))
         return weather_type, date, temp, icon, colour
-
-    @staticmethod
-    def insert_data(data: list):
-        """Executes updating (if some fields exists yet)
-        or inserting data to database.
-
-        :param data: list with dicts contains forecast"""
-        for day_weather in data:
-            assert isinstance(day_weather, dict)
-            Forecast.insert(**day_weather).on_conflict(
-                conflict_target=(Forecast.date,),
-                update=day_weather
-            ).execute()
