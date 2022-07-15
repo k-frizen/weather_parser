@@ -62,7 +62,6 @@ class ImageMaker:
         postcard_background = cv2.resize(postcard_template, (postcard_side, postcard_side))
 
         self.__width, self.__height = postcard_background.shape[:2]
-        assert self.__width == self.__height == postcard_side
         if icon is not None:
             resized_icon = cv2.resize(icon, (resized_icon_shape, resized_icon_shape))
             background = self.compare_background_and_icon(postcard_background, resized_icon, colour)

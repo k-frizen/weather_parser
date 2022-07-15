@@ -62,7 +62,7 @@ class WeatherMaker(threading.Thread):
             temperature = str(re.findall(r':\d*.?\d*', temperature_source)[0])[1:]
 
             weather_match = re.findall(r'"summary":"[\w*\s?]*"', str(source[0]))
-            days_difference = (self.day - datetime.date.today()).days < 10
+            days_difference = (self.day - datetime.date.today()).days
 
             if weather_match and days_difference < 10:
                 weather_type = str(weather_match[0]).split('":"')[1][:-1]
