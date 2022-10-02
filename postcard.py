@@ -62,11 +62,10 @@ class ImageMaker:
         postcard_background = cv2.resize(postcard_template, (postcard_side, postcard_side))
 
         self.__width, self.__height = postcard_background.shape[:2]
+        background = postcard_background
         if icon is not None:
             resized_icon = cv2.resize(icon, (resized_icon_shape, resized_icon_shape))
             background = self.compare_background_and_icon(postcard_background, resized_icon, colour)
-        else:
-            background = postcard_background
 
         x_coord_for_text = int(self.__width * .2) if len(weather_type) < 10 else int(self.__width * .1)
         cv2.putText(background, f"{weather_type}, {temp} deg",  # write a weather type and temperature
@@ -78,12 +77,12 @@ class ImageMaker:
         self.viewImage(background, 'postcard')
 
         #  save the postcard
-        file_name = "_".join(date.split()[1:]).lower()  # dd_mmm (01_jan, 30_oct, ect)
+        file_name = "_".join(date.split()[1:]).lower()  # dd_mmm (01_jan, 30_oct, etc.)
         if not os.path.exists(path_to_save):
             os.makedirs(path_to_save)
         cv2.imwrite(os.path.normpath(os.path.join(path_to_save, f'{file_name}.jpg')), background)
 
-    def __draw_gradient(self, background: ndarray, colour: tuple):
+    def __draw_gradient(self, background: ndarray, colour: tuple) -> None:
         """Gradient will be drawn from colour depends of weather type.
 
         :param background: the picture to draw on it
