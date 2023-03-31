@@ -4,9 +4,9 @@ import unittest
 from unittest.mock import Mock
 
 from base import database, DatabaseUpdater
+from constants import *
 from postcard import ImageMaker
-from settings import DATE_FORMAT, PATH_TO_SAVE_TEST_POSTCARDS, TEST_POSTCARDS_DATA, PATH_TO_POSTCARD_SAMPLES
-from settings import ICONS_DATA, get_norm_and_join_path, ICONS_PATH
+from utils import get_norm_and_join_path, TEST_POSTCARDS_DATA, get_count_of_postcards
 from weather import Manager
 from weather_forecast import WeatherMaker
 
@@ -36,10 +36,11 @@ class ForecastTest(unittest.TestCase):
 
     def test_weather_type_handler(self):
         for i, data in enumerate(ICONS_DATA.values()):
-            icon, colour = self.predictor._weather_type_handler(data['weather_type'].lower())
+            icon, colour = self.predictor._weather_type_handler(data[WEATHER_TYPE].lower())
 
-            self.assertEqual(icon, get_norm_and_join_path(ICONS_PATH, data['icon_file_name']))
-            self.assertEqual(colour, data['colour'])
+            supposed_icon_path = get_norm_and_join_path(ICONS_PATH, data[ICON_FILE_NAME])
+            self.assertEqual(icon, supposed_icon_path)
+            self.assertEqual(colour, data[COLOR])
 
     @isolate_db
     def test_wrong_date(self):
@@ -50,7 +51,7 @@ class ForecastTest(unittest.TestCase):
         weather_data = self.db_updater.get_data_from_db(wrong_day, next_wrong_day)[0]
 
         weather_type, icon, colour = weather_data[0], weather_data[3], weather_data[4]
-        self.assertEqual(weather_type, 'No data')
+        self.assertEqual(weather_type, NO_DATA.capitalize())
         self.assertIsNone(icon)
         self.assertEqual(colour, (255, 255, 255))
 
@@ -78,30 +79,18 @@ class ForecastTest(unittest.TestCase):
 
     @isolate_db
     def test_count_of_postcards(self):
-        count_of_postcards = self.get_count_of_postcards(PATH_TO_SAVE_TEST_POSTCARDS)
+        count_of_postcards = get_count_of_postcards(PATH_TO_SAVE_TEST_POSTCARDS)
 
         day1, day2 = self.test_date1.strftime(DATE_FORMAT), self.test_date2.strftime(DATE_FORMAT)
         Manager(f'-f {day1} -l {day2} -p', PATH_TO_SAVE_TEST_POSTCARDS).run()
 
-        new_count = self.get_count_of_postcards(PATH_TO_SAVE_TEST_POSTCARDS)
+        new_count = get_count_of_postcards(PATH_TO_SAVE_TEST_POSTCARDS)
         count_of_created_postcards = new_count - count_of_postcards
 
         self.assertEqual(self.days_difference, count_of_created_postcards)
 
         for name in os.listdir(PATH_TO_SAVE_TEST_POSTCARDS):
             os.remove(os.path.join(PATH_TO_SAVE_TEST_POSTCARDS, name))
-
-    @staticmethod
-    def get_count_of_postcards(path: str) -> int:
-        """Method returns count of files in path given. If path doesn't exist return 0
-
-        :param path: directory to count files in"""
-        if os.path.exists(path):
-            return len([
-                name for name in os.listdir(path) if os.path.isfile(
-                    os.path.join(path, name))])
-        else:
-            return 0
 
 
 if __name__ == '__main__':

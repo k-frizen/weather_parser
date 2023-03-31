@@ -3,6 +3,9 @@ import os
 import cv2
 from numpy.core.multiarray import ndarray
 
+from constants import *
+from utils import viewImage
+
 
 class ImageMaker:
     """The postcard Factory.
@@ -10,17 +13,15 @@ class ImageMaker:
     This class prepares data from database to cover it postcard; draws a gradient on postcard;
     compares icon and postcard with gradient and text (date, temperature, weather)"""
 
-    def __init__(self, path_to_template: str = 'external_data/template.jpg'):
+    def __init__(self, path_to_save: str, path_to_template: str = TEMPLATE_PATH, ):
+        """
+        :param path_to_save: directory where weather postcards will be stored.
+        :param path_to_template: path to postcard's template file
+         """
         self.__width, self.__height = 0, 0
         self.path_to_template = path_to_template
-
-    @staticmethod
-    def viewImage(image, name_of_window):
-        """Provide display postcard"""
-        cv2.namedWindow(name_of_window, cv2.WINDOW_NORMAL)
-        cv2.imshow(name_of_window, image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        self._font = cv2.FONT_HERSHEY_DUPLEX
+        self.path_to_save = path_to_save
 
     def compare_background_and_icon(self, background: ndarray, icon: ndarray, colour: tuple) -> ndarray:
         """Overlays icon on postcard.
@@ -47,12 +48,12 @@ class ImageMaker:
 
         return background
 
-    def draw_postcard(self, data: tuple, path_to_save: str):
+    def draw_postcard(self, data: tuple):
         """Draws picture with colored background, degrees, date and weather type caption.
         Displays result postcard and saves it.
 
         :param data: database field contains weather type and temp at this date, icon path and colour to draw gradient
-        :param path_to_save: directory where weather postcards will be stored."""
+        """
         postcard_template = cv2.imread(self.path_to_template)
         weather_type, date, temp, icon, colour = data
 
@@ -68,19 +69,29 @@ class ImageMaker:
             background = self.compare_background_and_icon(postcard_background, resized_icon, colour)
 
         x_coord_for_text = int(self.__width * .2) if len(weather_type) < 10 else int(self.__width * .1)
-        cv2.putText(background, f"{weather_type}, {temp} deg",  # write a weather type and temperature
-                    (x_coord_for_text, int(self.__height * .2)), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 0), 1)
+        common_params = dict(img=background, fontFace=self._font, fontScale=1, color=BLACK_COLOR, thickness=1)
 
-        cv2.putText(background, date,  # write a date in "weekday, day month" format
-                    (int(self.__width * .2), int(self.__height * .4)), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 0), 1)
+        # write a weather type and temperature
+        first_line_coord = x_coord_for_text, int(self.__height * .2)
+        cv2.putText(text=f"{weather_type}, {temp} deg", org=first_line_coord, **common_params)
 
-        self.viewImage(background, 'postcard')
+        # write a date in "weekday, day month" format
+        second_line_coord = int(self.__width * .2), int(self.__height * .4)
+        cv2.putText(text=date, org=second_line_coord, **common_params)
 
-        #  save the postcard
+        viewImage(background, 'postcard')
+        self.save_postcard(date, background)
+
+    def save_postcard(self, date: str, postcard):
+        """Method writes created postcard to the given directory
+
+        :param date: text date to transform it into filename
+        :param postcard: image of postcard to save
+        """
         file_name = "_".join(date.split()[1:]).lower()  # dd_mmm (01_jan, 30_oct, etc.)
-        if not os.path.exists(path_to_save):
-            os.makedirs(path_to_save)
-        cv2.imwrite(os.path.normpath(os.path.join(path_to_save, f'{file_name}.jpg')), background)
+        if not os.path.exists(self.path_to_save):
+            os.makedirs(self.path_to_save)
+        cv2.imwrite(os.path.normpath(os.path.join(self.path_to_save, f'{file_name}.jpg')), postcard)
 
     def __draw_gradient(self, background: ndarray, colour: tuple) -> None:
         """Gradient will be drawn from colour depends of weather type.

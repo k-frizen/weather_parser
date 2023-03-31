@@ -7,8 +7,9 @@ import cv2
 import peewee
 from numpy.core.multiarray import ndarray
 
-from settings import DATE_FORMAT_ON_POSTCARD, DATABASE_NAME
+from constants import DATE_FORMAT_ON_POSTCARD
 
+DATABASE_NAME = 'weather.db'
 database = peewee.SqliteDatabase(DATABASE_NAME)
 
 
@@ -22,7 +23,7 @@ class Forecast(BaseTable):
     temperature = peewee.CharField()
     weather_type = peewee.CharField()
     icon_path = peewee.CharField()
-    colours = peewee.CharField()
+    colors = peewee.CharField()
 
 
 database.create_tables([Forecast])
@@ -50,7 +51,7 @@ class DatabaseUpdater:
         )
         self.conn.close()
         return [self.__unpack_data((
-            field.weather_type, field.date, field.temperature, field.icon_path, field.colours
+            field.weather_type, field.date, field.temperature, field.icon_path, field.colors
         ))
             for field in res]
 
@@ -70,11 +71,11 @@ class DatabaseUpdater:
     def __unpack_data(data: tuple) -> tuple[str, str, str, Optional[ndarray], tuple[int, ...]]:
         """Prepares data from database and returns it.
 
-        :param data: field of Forecast table contains weather type and temp at this date, icon path and colour
+        :param data: field of Forecast table contains weather type and temp at this date, icon path and color
         :return: prepared data. For example convert date - datetime.date(2021, 11, 7) -> 'Sun, 7 Nov' """
-        weather_type, _date, temp, icon_path, colour = data
+        weather_type, _date, temp, icon_path, color = data
         date = str(_date.strftime(DATE_FORMAT_ON_POSTCARD))
         temp = temp.split('.')[0]
         icon = cv2.imread(icon_path, -1) if icon_path else None
-        colour = tuple(map(int, colour.split(',')))
-        return weather_type, date, temp, icon, colour
+        color = tuple(map(int, color.split(',')))
+        return weather_type, date, temp, icon, color

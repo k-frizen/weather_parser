@@ -8,7 +8,8 @@ from typing import Tuple
 import requests
 from bs4 import BeautifulSoup
 
-from settings import ICONS_PATH, ICONS_DATA, DATE_HOUR_FORMAT, get_norm_and_join_path
+from constants import *
+from utils import get_norm_and_join_path
 
 
 class WeatherMaker(threading.Thread):
@@ -26,8 +27,8 @@ class WeatherMaker(threading.Thread):
         self.weather_resp = requests.get(f'https://darksky.net/details/59.9343,30.3351/{str(self.day)}/ca24/en ')
 
     def _weather_type_handler(self, weather_type: str) -> Tuple[str, str]:
-        """Compares weather type with path to icon and colour belong to this type.
-        Returns tuple of colour as BGR string for image and path to weather icon
+        """Compares weather type with path to icon and color belong to this type.
+        Returns tuple of color as BGR string for image and path to weather icon
 
         :param weather_type: represents forecast option like precipitation, cloudiness or clearness"""
 
@@ -37,19 +38,21 @@ class WeatherMaker(threading.Thread):
         cloudy_match = re.findall(self.CLOUDY_PATTERN, weather_type)
 
         if sunny_match:
-            key = 'sun'
+            key = SUN
         elif rainy_match:
-            key = 'rain'
+            key = RAIN
         elif snow_match:
-            key = 'snow'
+            key = RAIN
         elif cloudy_match:
-            key = 'cloud'
+            key = CLOUD
         else:
-            key = 'no data'
+            key = NO_DATA
 
-        weather_icon, colour = ICONS_DATA[key]['icon_file_name'], ICONS_DATA[key]['colour']
+        icon_data = ICONS_DATA[key]
+        weather_icon = icon_data[ICON_FILE_NAME]
+        color = icon_data[COLOR]
         icon_path = get_norm_and_join_path(ICONS_PATH, weather_icon)
-        return icon_path, colour
+        return icon_path, color
 
     def run(self):
         if self.weather_resp.status_code == 200:
@@ -67,16 +70,16 @@ class WeatherMaker(threading.Thread):
             if weather_match and days_difference < 10:
                 weather_type = str(weather_match[0]).split('":"')[1][:-1]
             else:
-                weather_type = ICONS_DATA['no data']['weather_type']
+                weather_type = ICONS_DATA[NO_DATA][WEATHER_TYPE]
 
-            icon, colour = self._weather_type_handler(weather_type.lower())
+            icon, color = self._weather_type_handler(weather_type.lower())
 
             data = {
-                'weather_type': weather_type,
+                WEATHER_TYPE: weather_type,
                 'date': self.day,
                 'temperature': temperature,
                 'icon_path': icon,
-                'colours': colour
+                'colors': color
             }
             with self.lock:
                 self.res_holder.append(data)

@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from typing import Iterable, Optional
 
 from base import DatabaseUpdater
+from constants import DEFAULT_PATH_TO_SAVE_POSTCARD, DATE_FORMAT
 from postcard import ImageMaker
-from settings import DATE_FORMAT, DEFAULT_PATH_TO_SAVE_POSTCARD
 from weather_forecast import WeatherMaker
 
 
@@ -66,9 +66,9 @@ class Manager:
         parser.add_argument('-l', type=str, help='Enter last date of diapason to get forecast in yyyy-mm-dd format')
         parser.add_argument('-p', action='store_true', help='indicate param to print and save postcards')
         parser.add_argument('-c', action='store_true', help='indicate param to print forecasts in console')
-
+        import datetime
         dates = parser.parse_args() if not self.parameters else parser.parse_args(self.parameters.split())
-        dates_range = tuple(datetime.strptime(date, DATE_FORMAT).date() for date in (dates.f, dates.l))
+        dates_range = tuple(datetime.datetime.strptime(date, DATE_FORMAT).date() for date in (dates.f, dates.l))
         return dates_range, dates.p, dates.c
 
     def run(self):
@@ -82,8 +82,8 @@ class Manager:
         forecast = db_updater.get_data_from_db(first_date, last_date)
         for forecast_data in forecast:
             forecast_text = 'On {weekday} weather is {weather_type}, {temp} degrees'.format(
-                weekday=forecast_data[1], weather_type=forecast_data[0].lower(), temp=forecast_data[2])
-
+                weekday=forecast_data[1], weather_type=forecast_data[0].lower(), temp=forecast_data[2]
+            )
             if need_postcards:
                 print(forecast_text)
 
@@ -92,4 +92,9 @@ class Manager:
 
 
 if __name__ == "__main__":
-    Manager('-f 2022-08-16 -l 2022-08-17 -c -p').run()
+    import datetime
+
+    today = datetime.date.today()
+    day_after_few_days = today + timedelta(days=2)
+    day1, day2 = today.strftime(DATE_FORMAT), day_after_few_days.strftime(DATE_FORMAT)
+    Manager(f'-f {day1} -l {day2} -c -p').run()
