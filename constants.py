@@ -1,4 +1,6 @@
 # ICONS constants
+import re
+
 ICON_FILE_NAME = 'icon_file_name'
 
 # WEATHER constants
@@ -8,7 +10,6 @@ WEATHER_TYPE = 'weather_type'
 CLEAR, RAIN = 'Clear', 'rain'
 SUN, SNOW = 'sun', 'snow'
 CLOUD, NO_DATA = 'cloud', 'no data'
-
 
 # paths
 TEMPLATE_PATH = 'external_data/template.jpg'
@@ -22,6 +23,16 @@ SUN_ICON_PATH = 'sun.png'
 RAIN_ICON_PATH = 'rain.png'
 SNOW_ICON_PATH = 'snow.png'
 CLOUD_ICON_PATH = 'cloud.png'
+
+# RegEx
+SUNNY_PATTERN = re.compile(r'clear|sun')
+RAINY_PATTERN = re.compile(r'drizzle|rain')
+SNOW_PATTERN = re.compile(r'snow')
+CLOUDY_PATTERN = re.compile(r'overcast|cloud|foggy')
+
+# url data
+BASE_URL = "https://darksky.net/details"
+SPB_COORDS = '59.9343,30.3351'
 
 # COLORS
 COLOR = 'color'

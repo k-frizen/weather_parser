@@ -6,7 +6,7 @@ from unittest.mock import Mock
 from base import database, DatabaseUpdater
 from constants import *
 from postcard import ImageMaker
-from utils import get_norm_and_join_path, TEST_POSTCARDS_DATA, get_count_of_postcards
+from utils import get_norm_and_joined_path, TEST_POSTCARDS_DATA, get_count_of_postcards
 from weather import Manager
 from weather_forecast import WeatherMaker
 
@@ -22,7 +22,7 @@ def isolate_db(test_func):
 
 class ForecastTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.predictor = WeatherMaker(res_holder=Mock(), lock=Mock(), day=datetime.date.today())
+        self.predictor = WeatherMaker(weather_data=Mock(), lock=Mock(), day=datetime.date.today())
         self.db_updater = DatabaseUpdater()
         self.leader = Manager()
         self.painter = ImageMaker()
@@ -38,7 +38,7 @@ class ForecastTest(unittest.TestCase):
         for i, data in enumerate(ICONS_DATA.values()):
             icon, colour = self.predictor._weather_type_handler(data[WEATHER_TYPE].lower())
 
-            supposed_icon_path = get_norm_and_join_path(ICONS_PATH, data[ICON_FILE_NAME])
+            supposed_icon_path = get_norm_and_joined_path(ICONS_PATH, data[ICON_FILE_NAME])
             self.assertEqual(icon, supposed_icon_path)
             self.assertEqual(colour, data[COLOR])
 
@@ -66,8 +66,8 @@ class ForecastTest(unittest.TestCase):
         for i, data_unit in enumerate(TEST_POSTCARDS_DATA):
             postcard_data, postcard_sample = data_unit
             self.painter.draw_postcard(postcard_data, PATH_TO_SAVE_TEST_POSTCARDS)
-            example_postcard = get_norm_and_join_path(PATH_TO_POSTCARD_SAMPLES, postcard_sample)
-            result_postcard = get_norm_and_join_path(PATH_TO_SAVE_TEST_POSTCARDS, postcard_sample)
+            example_postcard = get_norm_and_joined_path(PATH_TO_POSTCARD_SAMPLES, postcard_sample)
+            result_postcard = get_norm_and_joined_path(PATH_TO_SAVE_TEST_POSTCARDS, postcard_sample)
 
             with open(example_postcard, 'rb') as example:
                 with open(result_postcard, 'rb') as result:
